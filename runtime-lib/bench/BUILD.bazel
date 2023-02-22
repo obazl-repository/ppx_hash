@@ -1,0 +1,42 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_ocaml//build:rules.bzl",
+     "ocaml_ns_archive",
+     "ocaml_module",
+     "ppx_executable",
+)
+
+PPX_ARGS = []
+DEPS_1 = [
+    "@core//lib/core",
+    "//runtime-lib/src:ppx_hash_lib",
+    "//runtime-lib/test:ppx_hash_runtime_test"
+]
+
+############################# Aggregates #############################
+ocaml_ns_archive(
+    name       = "ppx_hash_lib_bench",
+    ns_name    = "ppx_hash_lib_bench",
+    manifest = [
+        ":Bench"
+    ],
+)
+
+######################## Modules & Signatures ########################
+ocaml_module(
+    name          = "Bench",
+    struct        = "bench.ml",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + []
+)
+
+
+###############
+ppx_executable(
+    name    = "ppx.exe",
+    main    = "@ppxlib//lib/runner",
+    prologue = [
+        "@ppx_jane//lib/ppx_jane"
+    ],
+)

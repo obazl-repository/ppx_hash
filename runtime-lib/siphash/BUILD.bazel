@@ -1,0 +1,60 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_ocaml//build:rules.bzl",
+     "ocaml_ns_archive",
+     "ocaml_module",
+     "ocaml_signature",
+)
+
+DEPS_1 = [
+    "@base//lib/base"
+]
+
+############################# Aggregates #############################
+ocaml_ns_archive(
+    name       = "siphash_lib",
+    ns_name    = "siphash_lib",
+    manifest = [
+        ":Siphash"
+    ],
+    cc_deps    = ["__libsiphash_lib__"],
+)
+
+######################## Modules & Signatures ########################
+ocaml_signature(
+    name          = "Siphash_cmi",
+    src           = "siphash.mli",
+    deps          = DEPS_1,
+)
+
+ocaml_module(
+    name          = "Siphash",
+    struct        = "siphash.ml",
+    sig           = ":Siphash_cmi",
+    deps          = DEPS_1,
+)
+
+################ ################
+cc_selection_proxy(
+    name = "__libsiphash_lib__",
+    selection = select({
+        "@ocaml//platforms:vm?": ["dllsiphash_lib.stubs.so"],
+        "@ocaml//platforms:sys?": ["siphash_lib.stubs"],
+        "//conditions:default": ["siphash_lib.stubs"]    })
+)
+
+cc_binary(
+    name = "dllsiphash_lib.stubs.so",
+    linkshared = True,
+    srcs = ["siphash.c"],
+    deps = ["@ocaml//c"],
+    copts = ["-I", "external/ocaml/c"]
+)
+
+cc_library(
+    name = "siphash_lib.stubs",
+    linkstatic = True,
+    srcs = ["siphash.c"],
+    deps = ["@ocaml//c"],
+    copts = ["-I", "external/ocaml/c"]
+)

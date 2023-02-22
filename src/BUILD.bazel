@@ -1,0 +1,36 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_ocaml//build:rules.bzl",
+     "ocaml_library",
+     "ocaml_module",
+     "ocaml_signature",
+     "ppx_module",
+)
+
+DEPS_1 = [
+    "@ppxlib//lib/ppxlib",
+    "//expander:ppx_hash_expander"
+]
+
+############################# Aggregates #############################
+ocaml_library(
+    name       = "ppx_hash",
+    manifest = [
+        ":Ppx_hash"
+    ],
+)
+
+######################## Modules & Signatures ########################
+ocaml_signature(
+    name          = "Ppx_hash_cmi",
+    src           = "ppx_hash.mli",
+    deps          = DEPS_1,
+)
+
+ppx_module(
+    name          = "Ppx_hash",
+    struct        = "ppx_hash.ml",
+    sig           = ":Ppx_hash_cmi",
+    deps          = DEPS_1,
+)
+

@@ -1,0 +1,101 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_ocaml//build:rules.bzl",
+     "ocaml_ns_archive",
+     "ocaml_module",
+     "ocaml_signature",
+     "ppx_executable",
+)
+
+PPX_ARGS = []
+DEPS_1 = [
+    "//runtime-lib/src:ppx_hash_lib",
+    "//runtime-lib/siphash:siphash_lib",
+    "@core//lib/core",
+    "@core_unix//lib/core_thread",
+    "@core_unix//lib/core_unix"
+]
+
+############################# Aggregates #############################
+fail("FIXME: verify build_test target")
+build_test(
+    name       = "ppx_hash_runtime_test_test",
+    targets  = [
+        ":Allocation",
+        ":Collisions",
+        ":Floats",
+        ":Perfect_hash",
+        ":Threads",
+        ":Tree"
+    ],
+)
+
+######################## Modules & Signatures ########################
+ocaml_signature(
+    name          = "Perfect_hash_cmi",
+    src           = "perfect_hash.mli",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+)
+
+ocaml_module(
+    name          = "Perfect_hash",
+    struct        = "perfect_hash.ml",
+    sig           = ":Perfect_hash_cmi",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + [],
+)
+
+ocaml_module(
+    name          = "Allocation",
+    struct        = "allocation.ml",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + []
+)
+
+ocaml_module(
+    name          = "Collisions",
+    struct        = "collisions.ml",
+    deps          = DEPS_1 + [
+        ":Perfect_hash"
+    ],
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + []
+)
+
+ocaml_module(
+    name          = "Floats",
+    struct        = "floats.ml",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + []
+)
+
+ocaml_module(
+    name          = "Threads",
+    struct        = "threads.ml",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + []
+)
+
+ocaml_module(
+    name          = "Tree",
+    struct        = "tree.ml",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + []
+)
+
+
+###############
+ppx_executable(
+    name    = "ppx.exe",
+    main    = "@ppxlib//lib/runner",
+    prologue = [
+        "@ppx_jane//lib/ppx_jane"
+    ],
+)

@@ -1,0 +1,52 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_ocaml//build:rules.bzl",
+     "ocaml_library",
+     "ocaml_module",
+     "ocaml_signature",
+     "ppx_executable",
+)
+
+PPX_ARGS = []
+DEPS_1 = [
+    "@ppx_compare//lib/expander",
+    "@base//lib/base",
+    "@ppxlib//lib/ppxlib",
+    "@ocaml//compiler-libs/common"
+]
+
+############################# Aggregates #############################
+ocaml_library(
+    name       = "ppx_hash_expander",
+    manifest = [
+        ":Ppx_hash_expander"
+    ],
+)
+
+######################## Modules & Signatures ########################
+ocaml_signature(
+    name          = "Ppx_hash_expander_cmi",
+    src           = "ppx_hash_expander.mli",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+)
+
+ocaml_module(
+    name          = "Ppx_hash_expander",
+    struct        = "ppx_hash_expander.ml",
+    sig           = ":Ppx_hash_expander_cmi",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + [],
+    ppx_codeps    = ["//runtime-lib/src:ppx_hash_lib"],
+)
+
+
+###############
+ppx_executable(
+    name    = "ppx.exe",
+    main    = "@ppxlib//lib/runner",
+    prologue = [
+        "@ppxlib//lib/metaquot"
+    ],
+)

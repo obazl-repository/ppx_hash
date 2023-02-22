@@ -1,0 +1,83 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_ocaml//build:rules.bzl",
+     "ocaml_ns_archive",
+     "ocaml_module",
+     "ppx_executable",
+)
+
+PPX_ARGS = []
+DEPS_1 = [
+    "@core//lib/core"
+]
+
+############################# Aggregates #############################
+build_test(
+    name       = "ppx_hash_test",
+    targets  = [
+        ":Closures",
+        ":Hash_test",
+        ":Inline_records",
+        ":Override_example",
+        ":Polymorphic_variants",
+        ":Record_field_control"
+    ],
+)
+
+######################## Modules & Signatures ########################
+ocaml_module(
+    name          = "Closures",
+    struct        = "closures.ml",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + []
+)
+
+ocaml_module(
+    name          = "Hash_test",
+    struct        = "hash_test.ml",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + []
+)
+
+ocaml_module(
+    name          = "Inline_records",
+    struct        = "inline_records.ml",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + ["-inline-test-lib", "ppx_hash"])
+
+ocaml_module(
+    name          = "Override_example",
+    struct        = "override_example.ml",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + []
+)
+
+ocaml_module(
+    name          = "Polymorphic_variants",
+    struct        = "polymorphic_variants.ml",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + ["-inline-test-lib", "ppx_hash"]
+)
+
+ocaml_module(
+    name          = "Record_field_control",
+    struct        = "record_field_control.ml",
+    deps          = DEPS_1,
+    ppx           = ":ppx.exe",
+    ppx_args      = PPX_ARGS + ["-inline-test-lib", "ppx_hash"]
+)
+
+###############
+ppx_executable(
+    name    = "ppx.exe",
+    main    = "@ppxlib//lib/runner",
+    prologue = [
+        "@ppx_jane//lib/ppx_jane"
+    ],
+)
